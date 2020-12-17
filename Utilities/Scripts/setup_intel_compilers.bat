@@ -17,17 +17,22 @@ IF "%SETUP_IFORT_COMPILER_64%"=="1" GOTO envexist
     echo "*** Error: Intel ICPP_COMPILER environment variable not defined."
   )
   IF DEFINED ICPP_COMPILER (
-    if exist "%ICPP_COMPILER%\bin\compilervars.bat" (
-      echo Setting up C/C++ compiler environment
-      call "%ICPP_COMPILER%\bin\compilervars" intel64
-    )
-    if not exist "%ICPP_COMPILER%\bin\compilervars.bat" (
-      echo.
-      echo ***warning compiler setup script,
-      echo    "%ICPP_COMPILER%\bin\compilervars.bat",
-      echo    does not exist
-      echo.
-    )
+    IF EXIST "%ICPP_COMPILER%..\..\..\setvars.bat" (
+        echo Setting up ONEAPI compiler environment
+        call "%ICPP_COMPILER%..\..\..\setvars" intel64
+    ) ELSE (
+	if exist "%ICPP_COMPILER%\bin\compilervars.bat" (
+            echo Setting up C/C++ compiler environment
+            call "%ICPP_COMPILER%\bin\compilervars" intel64
+            )
+        if not exist "%ICPP_COMPILER%\bin\compilervars.bat" (
+            echo.
+            echo ***warning compiler setup script,
+            echo    "%ICPP_COMPILER%\bin\compilervars.bat",
+            echo    does not exist
+            echo.
+       	    )
+	)
   )
 
 :envexist
