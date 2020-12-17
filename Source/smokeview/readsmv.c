@@ -11045,7 +11045,7 @@ int ReadIni2(char *inifile, int localfile){
 
       fgets(buffer, 255, stream);
       sscanf(buffer, "%i %i %i", &show_extremedata, &below, &above);
-      if(below == -1 && above == -1){
+      if(below == -1 || above == -1){
         if(below == -1)below = 0;
         if(below != 0)below = 1;
         if(above == -1)above = 0;
@@ -11054,8 +11054,8 @@ int ReadIni2(char *inifile, int localfile){
       else{
         if(show_extremedata != 1)show_extremedata = 0;
         if(show_extremedata == 1){
-          below = 1;
-          above = 1;
+          if (below != 0) below = 1;
+          if (above != 0) above = 1;
         }
         else{
           below = 0;
