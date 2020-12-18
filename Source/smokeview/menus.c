@@ -900,16 +900,23 @@ void ColorbarDigitMenu(int value){
 void ColorbarMenu(int value){
   if(value==MENU_DUMMY)return;
   updatemenu=1;
+  int aux = 0;
   GLUTPOSTREDISPLAY;
   if(value<0){
     switch(value){
     case COLORBAR_AUTOFLIP:
       colorbar_autoflip = 1 - colorbar_autoflip;
+      aux = show_extreme_mindata;
+      show_extreme_mindata = show_extreme_maxdata;
+      show_extreme_maxdata = aux;
       update_flipped_colorbar = 1;
       UpdateColorbarFlip();
       break;
     case COLORBAR_FLIP:
       colorbar_flip=1-colorbar_flip;
+      aux = show_extreme_mindata;
+      show_extreme_mindata = show_extreme_maxdata;
+      show_extreme_maxdata = aux;
       UpdateColorbarFlip();
       break;
     case COLORBAR_RESET:
