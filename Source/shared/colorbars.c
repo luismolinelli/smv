@@ -727,7 +727,6 @@ void InitDefaultColorbars(colorbar_collection *colorbars,
 
   for(int i = 0; i < colorbars->ncolorbars; i++){
     colorbardata *cbi = colorbars->colorbarinfo + i;
-    cbi->can_adjust = 1;
     cbi->adjusted = 0;
   }
 
