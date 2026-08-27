@@ -1,0 +1,88 @@
+name: Ubuntu Smokeview Artifact
+
+on:
+  push:
+    branches:
+      - eurisko
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Ubuntu 24.04 GCC Release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install build and runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends \
+            build-essential cmake ninja-build patchelf xvfb xauth \
+            freeglut3-dev libx11-dev libxmu-dev libxi-dev libglew-dev \
+            libgd-dev libjson-c-dev
+
+      - name: Configure and build
+        run: |
+          cmake -S . -B cbuild -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/artifact" \
+            -DCMAKE_INSTALL_RPATH='$ORIGIN/../lib' \
+            -DSTRICT_CHECKS=ON \
+            -DVENDORED_LIBS=ON \
+            -DVENDORED_UI_LIBS=ON
+          cmake --build cbuild --parallel 4
+          cmake --install cbuild
+
+      - name: Make the installation relocatable
+        run: |
+          test -x artifact/bin/smokeview
+          test -f artifact/bin/smokeview.ini
+          test -f artifact/bin/objects.svo
+          test -f artifact/lib/libglut32.so
+          patchelf --set-rpath '$ORIGIN/../lib' artifact/bin/smokeview
+          readelf -d artifact/bin/smokeview | grep -F '[$ORIGIN/../lib]'
+
+      - name: Validate the installed program
+        run: |
+          if ldd artifact/bin/smokeview | grep -F 'not found'; then
+            exit 1
+          fi
+          cd /tmp
+          timeout 20 xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 \
+            "$GITHUB_WORKSPACE/artifact/bin/smokeview" -version \
+            > "$GITHUB_WORKSPACE/artifact/VERSION.txt" 2>&1
+          grep -Eiq 'smokeview|1\.17\.0' \
+            "$GITHUB_WORKSPACE/artifact/VERSION.txt"
+
+      - name: Record provenance and checksums
+        run: |
+          {
+            printf 'repository=%s\n' "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+            printf 'branch=%s\n' "$GITHUB_REF_NAME"
+            printf 'commit=%s\n' "$GITHUB_SHA"
+            printf 'runner=%s\n' 'ubuntu-24.04'
+            printf 'compiler=%s\n' "$(gcc -dumpfullversion)"
+            printf 'build_type=%s\n' 'Release'
+          } > artifact/SOURCE
+          (
+            cd artifact
+            find . -type f ! -name SHA256SUMS -print0 |
+              sort -z |
+              xargs -0 sha256sum > SHA256SUMS
+            sha256sum -c SHA256SUMS
+          )
+
+      - name: Upload verified Ubuntu artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smokeview-ubuntu24-eurisko-${{ github.sha }}
+          path: artifact/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 9
