@@ -5,6 +5,7 @@
 #endif
 
 #include "options_common.h"
+#include "slice_colorbar.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -4125,13 +4126,7 @@ int ParseSLCFProcess(smv_case *scase, int option, bufferstreamdata *stream, char
   else{
     if(ReadLabels(&sd->label, stream, NULL)==LABEL_ERR)return RETURN_TWO;
   }
-  if(strlen(sd->label.longlabel)>14&&
-    strncmp(sd->label.longlabel, "SOOT VISIBILITY", 15)==0){
-    sd->colorbar_autoflip = 1;
-  }
-  else{
-    sd->colorbar_autoflip = 0;
-  }
+  sd->colorbar_autoflip = SliceColorbarAutoFlip(sd->label.longlabel);
 
   sd->size_file  = SLICEBUFFER(len + 3 + 1);
   sd->bound_file = SLICEBUFFER(len + 4 + 1);

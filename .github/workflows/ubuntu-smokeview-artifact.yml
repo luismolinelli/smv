@@ -37,6 +37,7 @@ jobs:
             -DVENDORED_LIBS=ON \
             -DVENDORED_UI_LIBS=ON
           cmake --build cbuild --parallel 4
+          cbuild/test_slice_colorbar
           cmake --install cbuild
 
       - name: Make the installation relocatable

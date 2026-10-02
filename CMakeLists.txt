@@ -14,6 +14,7 @@ include(FetchContent)
 # Selected the multithreaded runtime when using MSVC
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 project(smv LANGUAGES C CXX VERSION 1.17.0)
+add_executable(test_slice_colorbar Tests/test_slice_colorbar.c)
 # Use C99
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -23,7 +24,7 @@ set(CMAKE_C_STANDARD_REQUIRED TRUE)
 # GNUInstallDirs is used to set the appropriate paths for install artefacts.
 # Despite the name it's still useful on Windows.
 include(GNUInstallDirs)
-add_compile_definitions(pp_GITHASH="${PROJECT_VERSION}+sc2")
+add_compile_definitions(pp_GITHASH="${PROJECT_VERSION}+sc2-eurisko.3")
 
 include(InstallRequiredSystemLibraries)
 configure_file(LICENSE.md LICENSE.txt)

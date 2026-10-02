@@ -1,0 +1,46 @@
+name: Windows Smokeview Artifact
+on:
+  push:
+    branches: [eurisko]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and install
+        shell: pwsh
+        run: |
+          cmake -S . -B cbuild -A x64 -DSTRICT_CHECKS=ON -DVENDORED_LIBS=ON -DVENDORED_UI_LIBS=ON -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --build cbuild --config Release --parallel 4
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & cbuild/Release/test_slice_colorbar.exe
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --install cbuild --config Release --prefix artifact
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Validate portable runtime and record provenance
+        shell: pwsh
+        run: |
+          foreach ($name in @('smokeview.exe','smokeview.ini','objects.svo','glut32.dll')) {
+            if (!(Test-Path "artifact/bin/$name")) { throw "Missing $name" }
+          }
+          $binary = (Resolve-Path artifact/bin/smokeview.exe).Path
+          Push-Location $env:RUNNER_TEMP
+          & $binary -version
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          Pop-Location
+          @("repository=$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY", "branch=$env:GITHUB_REF_NAME", "commit=$env:GITHUB_SHA", 'runner=windows-2022', 'build_type=Release') | Set-Content artifact/SOURCE
+          Get-ChildItem artifact -Recurse -File | ForEach-Object {
+            $relative = [IO.Path]::GetRelativePath((Resolve-Path artifact).Path,$_.FullName).Replace('\','/')
+            "$( (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower() )  $relative"
+          } | Set-Content artifact/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smokeview-win64-eurisko-${{ github.sha }}
+          path: artifact/
+          if-no-files-found: error
+          retention-days: 14
