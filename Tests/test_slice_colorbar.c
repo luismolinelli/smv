@@ -4,11 +4,13 @@
 int main(void){
   const char *labels[] = {"SOOT VISIBILITY", "SOOT VISIBILITY (cell centered)",
                          "OXYGEN VOLUME FRACTION", "OXYGEN MASS FRACTION",
+                         "OXYGEN VOLUME FRACTION(cell centered)",
+                         "OXYGEN MASS FRACTION (face centered)",
                          "TEMPERATURE", "CARBON MONOXIDE VOLUME FRACTION",
                          "CARBON DIOXIDE VOLUME FRACTION", "OXYGEN CONSUMPTION", NULL};
   unsigned int i;
   for(i = 0; i < sizeof(labels)/sizeof(labels[0]); i++){
-    if(SliceColorbarAutoFlip(labels[i]) != (i < 4)){
+    if(SliceColorbarAutoFlip(labels[i]) != (i < 6)){
       fprintf(stderr, "Unexpected autoflip for label %u\n", i);
       return 1;
     }

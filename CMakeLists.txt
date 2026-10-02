@@ -24,7 +24,7 @@ set(CMAKE_C_STANDARD_REQUIRED TRUE)
 # GNUInstallDirs is used to set the appropriate paths for install artefacts.
 # Despite the name it's still useful on Windows.
 include(GNUInstallDirs)
-add_compile_definitions(pp_GITHASH="${PROJECT_VERSION}+sc2-eurisko.3")
+add_compile_definitions(pp_GITHASH="${PROJECT_VERSION}+sc2-eurisko.4")
 
 include(InstallRequiredSystemLibraries)
 configure_file(LICENSE.md LICENSE.txt)
